@@ -32,7 +32,7 @@ class AdminBin
 
         $request['command'] = $stdin[0];
         if (!in_array($request['command'], $this->callable)) {
-            throw new \RuntimeException('Invalid AdminBin command');
+            throw new \RuntimeException('Invalid AdminBin command provided: ' . $request['command']);
         }
 
         $request['data'] = json_decode(base64_decode($stdin[1]));
