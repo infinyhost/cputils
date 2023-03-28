@@ -2,17 +2,74 @@
 
 namespace InfinyHost\CpUtils;
 
-class AdminBin
+abstract class AdminBin
 {
-    public $callable = [];
+    protected array $callable = [];
+    protected bool $debug = false;
+    protected array $result = [];
     const STREAM_READ = 'php://stdin';
 
-    public function parseInput($stream = self::STREAM_READ): array
-    {
-        return [$this->parseUserData(), $this->paarseInputData($stream)];
+    public function __construct() {
+        $this->result = [
+            'status' => true,
+            'error' => null,
+            'data' => null,
+        ];
+        set_error_handler([$this, 'errorHandler']);
+        set_exception_handler([$this, 'exceptionHandler']);
     }
 
-    public function paarseInputData($stream = self::STREAM_READ): array
+    /**
+     * @param $errno integer error number
+     * @param $errstr string error message
+     * @param $errfile string file where error occurred
+     * @param $errline integer line number where error occurred
+     * @return void
+     */
+    public function errorHandler($errno=0, $errstr ='', $errfile ='', $errline=0)
+    {
+        $this->result['status'] = false;
+        $this->result['error'] = $errstr;
+        if ($this->debug) {
+            $this->result['error'] .= ' in ' . $errfile . ' on line ' . $errline;
+        }
+        $this->result['data'] = null;
+        $this->output();
+        exit(1);
+    }
+
+    /**
+     * @param $e \Exception exception
+     * @return void
+     */
+    public function exceptionHandler(\Exception $e)
+    {
+        $this->result['status'] = false;
+        $this->result['error'] = $e->getMessage();
+        if ($this->debug) {
+            $this->result['error'] .= ' in ' . $e->getFile() . ' on line ' . $e->getLine();
+        }
+        $this->result['data'] = null;
+        $this->output();
+        exit(1);
+    }
+
+    /**
+     * Parse the input and return the data as array
+     * @param $stream
+     * @return array
+     */
+    public function parseInput($stream = self::STREAM_READ): array
+    {
+        return [$this->parseUserData(), $this->parseInputData($stream)];
+    }
+
+    /**
+     * Parse the input data and return the data as array
+     * @param $stream
+     * @return array
+     */
+    public function parseInputData($stream = self::STREAM_READ): array
     {
         $request = [
             'command' => '',
@@ -42,6 +99,11 @@ class AdminBin
         return $request;
     }
 
+    /**
+     * Parse the user data and return the data as array.
+     * Includes UID, GID, Username, Name and Home folder path of the user
+     * @return array
+     */
     public function parseUserData(): array
     {
         $data = [
@@ -74,5 +136,81 @@ class AdminBin
         }
 
         return $data;
+    }
+
+    /**
+     * Fails the request and outputs the error message
+     * @param string $msg
+     * @return void
+     */
+    public function fail(string $msg='Failed executing AdminBin command'): void
+    {
+        $this->result['status'] = false;
+        $this->result['error'] = $msg;
+        $this->result['data'] = null;
+        $this->output();
+        exit(1);
+    }
+
+    /**
+     * Succeeds the request and outputs the data
+     * @param $data
+     * @return void
+     */
+    public function success($data = null): void
+    {
+        $this->result['status'] = true;
+        $this->result['error'] = null;
+        $this->result['data'] = $data;
+        $this->output();
+        exit(0);
+    }
+
+    /**
+     * Sets the callable commands
+     * @param array $callable
+     * @return void
+     */
+    public function setCallable(array $callable): void
+    {
+        $this->callable = $callable;
+    }
+
+    /**
+     * Adds a callable command
+     * @param string $callable
+     * @return void
+     */
+    public function addCallable(string $callable): void
+    {
+        $this->callable[] = $callable;
+    }
+
+    /**
+     * @param bool $debug
+     * @return void
+     */
+    public function setDebug(bool $debug): void
+    {
+        $this->debug = $debug;
+    }
+
+    /**
+     * Sets the final output to use
+     * @param array $result
+     * @return void
+     */
+    public function setResult(array $result): void
+    {
+        $this->result = $result;
+    }
+
+    /**
+     * Outputs the result to stdout
+     * @return void
+     */
+    public function output(): void
+    {
+        echo json_encode($this->result);
     }
 }
