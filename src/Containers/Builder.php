@@ -13,6 +13,7 @@ class Builder
     // ps, inspect, top, stats, attach, wait, init, info, version, help
     public string $action = 'run';
     public string $image = '';
+    public string $rootfs = '';
     public string $name = '';
     public array $command = [];
 
@@ -343,8 +344,7 @@ class Builder
      */
     public function rootfs(string $rootfs): Builder
     {
-        $this->args[] = '--rootfs';
-        $this->args[] = $rootfs;
+        $this->rootfs = $rootfs;
         return $this;
     }
 
@@ -525,8 +525,14 @@ class Builder
         // Merge all other arguments
         $cmd = array_merge($cmd, $this->args);
 
-        // Add the image to run
-        $cmd[] = $this->image;
+        // Add the image to run or the rootfs
+        if ($this->rootfs != '') {
+            $cmd[] = '--rootfs';
+            $cmd[] = $this->rootfs;
+        } else {
+            $cmd[] = $this->image;
+        }
+
         // Add the command to run
         $cmd = array_merge($cmd, $this->command);
 
