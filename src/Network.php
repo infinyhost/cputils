@@ -32,17 +32,28 @@ class Network
                 throw new \RuntimeException("Failed getting network info for " . $network . " : " . $process->getErrorOutput());
             }
             $net = $network[0];
-            foreach ($net['plugins'] as $plugin) {
-                if (isset($plugin['ipam'])) {
-                    if (isset($plugin['ipam']['ranges'][0]) && isset($plugin['ipam']['ranges'][0][0]) && isset($plugin['ipam']['ranges'][0][0]['gateway'])) {
-                        $range = $plugin['ipam']['ranges'][0][0]['gateway'];
-                        break;
+            if (isset($net['subnets']) && isset($net['subnets'][0]) && isset($net['subnets'][0]['gateway'])) {
+                $range = $net['subnets'][0]['gateway'];
+            } else {
+                if (!isset($net['plugins'])) {
+                    throw new \RuntimeException("Failed getting network rootless info.");
+                }
+                foreach ($net['plugins'] as $plugin) {
+                    if (isset($plugin['ipam'])) {
+                        if (isset($plugin['ipam']['ranges'][0]) && isset($plugin['ipam']['ranges'][0][0]) && isset($plugin['ipam']['ranges'][0][0]['gateway'])) {
+                            $range = $plugin['ipam']['ranges'][0][0]['gateway'];
+                            break;
+                        }
+                        // Not the network we are looking for.. Move on.
                     }
-                    // Not the network we are looking for.. Move on.
                 }
             }
+
         } else {
             throw new \RuntimeException("Failed getting network info for " . $network . " : " . $process->getErrorOutput());
+        }
+        if ($range === '') {
+            throw new \RuntimeException("Failed getting network range info ");
         }
         return $range;
     }

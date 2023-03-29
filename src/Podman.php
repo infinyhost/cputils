@@ -68,12 +68,12 @@ class Podman
      * Check if a pod is running
      * @param string $pod
      * @return bool
+     * @throws PodNotFoundException
      */
     public static function podIsRunning(string $pod): bool
     {
-        $process = new Process([self::$podman, 'pod', 'top', $pod]);
-        $process->run();
-        return $process->isSuccessful();
+        $pod = self::podInspect($pod);
+        return $pod->State == 'Running';
     }
 
     /**

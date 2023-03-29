@@ -35,7 +35,7 @@ class AdminBin
         }
         $this->result['data'] = null;
         $this->output();
-        exit(1);
+        exit(0);
     }
 
     /**
@@ -51,7 +51,7 @@ class AdminBin
         }
         $this->result['data'] = null;
         $this->output();
-        exit(1);
+        exit(0);
     }
 
     /**
@@ -149,7 +149,7 @@ class AdminBin
         $this->result['error'] = $msg;
         $this->result['data'] = null;
         $this->output();
-        exit(1);
+        exit(0);
     }
 
     /**
