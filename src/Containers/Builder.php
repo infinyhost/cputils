@@ -543,18 +543,18 @@ class Builder
         return $this->exec($cmd);
     }
 
-    public function exec(array $cmd)
+    public function exec(array $cmd): Container
     {
         $process = new Process($cmd);
         $process->run();
-        if ($process->isSuccessful()) {
-            $container = new Container();
-            $container->load(trim($process->getOutput()));
-            return $container;
-        } else {
-            echo $process->getOutput();
+
+        if (!$process->isSuccessful()) {
             throw new \RuntimeException($process->getErrorOutput());
         }
+
+        $container = new Container();
+        $container->load(trim($process->getOutput()));
+        return $container;
     }
 
     public function run()
@@ -574,35 +574,4 @@ class Builder
         $this->action = 'start';
         return $this->build();
     }
-
-    public function stop(): string
-    {
-        $this->action = 'stop';
-        if ($this->name == "") {
-            throw new \RuntimeException("Cannot stop container without name. Use name() first to specify it");
-        }
-        $cmd = [Podman::$podman, 'stop', $this->name];
-        return $this->exec($cmd);
-    }
-
-    public function kill(): string
-    {
-        $this->action = 'kill';
-        if ($this->name == "") {
-            throw new \RuntimeException("Cannot kill container without name. Use name() first to specify it");
-        }
-        $cmd = [Podman::$podman, 'kill', $this->name];
-        return $this->exec($cmd);
-    }
-
-    public function rm(): string
-    {
-        $this->action = 'kill';
-        if ($this->name == "") {
-            throw new \RuntimeException("Cannot kill container without name. Use name() first to specify it");
-        }
-        $cmd = [Podman::$podman, 'kill', $this->name];
-        return $this->exec($cmd);
-    }
-
 }
