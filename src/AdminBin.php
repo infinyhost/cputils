@@ -2,7 +2,7 @@
 
 namespace InfinyHost\CpUtils;
 
-abstract class AdminBin
+class AdminBin
 {
     protected array $callable = [];
     protected bool $debug = false;
@@ -211,6 +211,6 @@ abstract class AdminBin
      */
     public function output(): void
     {
-        echo json_encode($this->result);
+        echo base64_encode(json_encode($this->result));
     }
 }

@@ -50,7 +50,7 @@ class AdminBinTest extends \PHPUnit\Framework\TestCase
     public function testStdinParse(): void
     {
         $adm = new \InfinyHost\CpUtils\AdminBin();
-        $adm->callable = ['correct_function'];
+        $adm->setCallable('correct_function');
         $cls =  base64_encode(json_encode(['test' => 'test']));
         $this->assertEquals($adm->paarseInputData(__DIR__ . "/../Data/AdminBin/correct.txt"), [
             'command' => 'correct_function',
@@ -61,7 +61,6 @@ class AdminBinTest extends \PHPUnit\Framework\TestCase
     public function testPublicFunctionDeny(): void
     {
         $adm = new \InfinyHost\CpUtils\AdminBin();
-        $adm->callable = [];
         $this->expectExceptionMessage('Invalid AdminBin command');
         $adm->paarseInputData(__DIR__ . "/../Data/AdminBin/correct.txt");
     }
